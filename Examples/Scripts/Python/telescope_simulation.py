@@ -19,6 +19,7 @@ if "__main__" == __name__:
     detector, trackingGeometry, decorators = acts.examples.TelescopeDetector.create(
         bounds=[200, 200],
         positions=[30, 60, 90, 120, 150, 180, 210, 240, 270],
+        stereos=[0] * 9,
         binValue=2,
     )
 
@@ -28,16 +29,17 @@ if "__main__" == __name__:
     if not outputDir.exists():
         outputDir.mkdir()
 
-    for geant, postfix in [(False, "fatras"), (True, "geant4")]:
+    # for geant, postfix in [(False, "fatras"), (True, "geant4")]:
+    for geant, postfix in [(False, "fatras")]:
         rnd = acts.examples.RandomNumbers(seed=42)
 
-        s = acts.examples.Sequencer(events=1, numThreads=1, logLevel=acts.logging.INFO)
+        s = acts.examples.Sequencer(events=100, numThreads=4, logLevel=acts.logging.INFO)
 
         addParticleGun(
             s,
             EtaConfig(-10.0, 10.0),
             PhiConfig(0.0, 360.0 * u.degree),
-            ParticleConfig(1000, acts.PdgParticle.eMuon, False),
+            ParticleConfig(10, acts.PdgParticle.eElectron, False),
             multiplicity=1,
             rnd=rnd,
             outputDirRoot=outputDir / postfix,

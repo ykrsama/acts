@@ -33,8 +33,10 @@ def runTruthTrackingKalman(
         addKalmanTracks,
     )
 
+    do_fatras = True if s is None else False
+
     s = s or acts.examples.Sequencer(
-        events=100, numThreads=-1, logLevel=acts.logging.INFO
+        events=50, numThreads=-1, logLevel=acts.logging.INFO
     )
 
     rnd = acts.examples.RandomNumbers()
@@ -44,7 +46,7 @@ def runTruthTrackingKalman(
         addParticleGun(
             s,
             EtaConfig(-2.0, 2.0),
-            ParticleConfig(2, acts.PdgParticle.eMuon, False),
+            ParticleConfig(10, acts.PdgParticle.eElectron, False),
             multiplicity=1,
             rnd=rnd,
             outputDirRoot=outputDir,
@@ -55,7 +57,7 @@ def runTruthTrackingKalman(
         )
         assert inputParticlePath.exists()
         s.addReader(
-            RootParticleReader(
+            acts.examples.RootParticleReader(
                 level=acts.logging.INFO,
                 filePath=str(inputParticlePath.resolve()),
                 particleCollection="particles_input",
@@ -63,13 +65,14 @@ def runTruthTrackingKalman(
             )
         )
 
-    addFatras(
-        s,
-        trackingGeometry,
-        field,
-        rnd=rnd,
-        enableInteractions=True,
-    )
+    if do_fatras:
+        addFatras(
+            s,
+            trackingGeometry,
+            field,
+            rnd=rnd,
+            enableInteractions=True,
+        )
 
     addDigitization(
         s,
