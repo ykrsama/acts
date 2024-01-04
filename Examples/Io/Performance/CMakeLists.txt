@@ -17,3 +17,6 @@ target_link_libraries(
 install(
   TARGETS ActsExamplesIoPerformance
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(
+  DIRECTORY ActsExamples/Io
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ActsExamples)

@@ -12,3 +12,6 @@ target_link_libraries(
 install(
   TARGETS ActsExamplesGenerators
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(
+  DIRECTORY ActsExamples/Generators
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ActsExamples)

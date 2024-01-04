@@ -19,3 +19,6 @@ target_link_libraries(
 install(
   TARGETS ActsExamplesTruthTracking
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(
+  DIRECTORY ActsExamples/TruthTracking
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ActsExamples)

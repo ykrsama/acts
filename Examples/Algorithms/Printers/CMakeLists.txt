@@ -13,3 +13,6 @@ target_link_libraries(
 install(
   TARGETS ActsExamplesPrinters
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(
+  DIRECTORY ActsExamples/Printers
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ActsExamples)
