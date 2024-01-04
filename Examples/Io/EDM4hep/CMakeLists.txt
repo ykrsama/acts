@@ -28,3 +28,6 @@ target_link_libraries(
 install(
   TARGETS ActsExamplesIoEDM4hep
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(
+  DIRECTORY include/ActsExamples
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})

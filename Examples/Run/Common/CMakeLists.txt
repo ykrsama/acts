@@ -55,3 +55,6 @@ acts_target_link_libraries_system(
 install(
   TARGETS ActsExamplesCommon
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(
+  DIRECTORY include/ActsExamples
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})

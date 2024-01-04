@@ -36,3 +36,6 @@ install(
   TARGETS ActsExamplesTrackFindingML
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
+install(
+  DIRECTORY include/ActsExamples
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})

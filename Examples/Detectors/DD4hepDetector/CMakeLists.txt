@@ -32,3 +32,6 @@ dd4hep_generate_rootmap(ActsExamplesDetectorDD4hep)
 install(
   TARGETS ActsExamplesDetectorDD4hep
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(
+  DIRECTORY include/ActsExamples
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})

@@ -17,3 +17,12 @@ target_link_libraries(
 install(
   TARGETS ActsExamplesDigitization
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+install(
+  DIRECTORY include/ActsExamples
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+install(
+  DIRECTORIES share
+  DESTINATION ${CMAKE_INSTALL_PREFIX}
+)

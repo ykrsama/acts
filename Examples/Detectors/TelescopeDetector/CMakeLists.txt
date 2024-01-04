@@ -13,3 +13,6 @@ target_link_libraries(
 install(
   TARGETS ActsExamplesDetectorTelescope
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(
+  DIRECTORY include/ActsExamples
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})

@@ -14,3 +14,6 @@ target_include_directories(
 install(
   TARGETS ActsExamplesDD4hepDetectorWithOptions
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(
+  DIRECTORY include/ActsExamples
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
