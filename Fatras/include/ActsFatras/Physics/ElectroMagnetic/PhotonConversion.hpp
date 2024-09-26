@@ -57,11 +57,17 @@ class PhotonConversion {
   /// @tparam generator_t Type of the random number generator
   /// @param [in, out] generator The random number generator
   /// @param [in, out] particle The interacting photon
+  //  @param [in] slab Material slab for material effect
   /// @param [out] generated List of generated particles
   ///
   /// @return True if the conversion occured, else false
   template <typename generator_t>
   bool run(generator_t& generator, Particle& particle,
+           std::vector<Particle>& generated) const;
+
+  template <typename generator_t>
+  bool run(generator_t& generator, Particle& particle,
+           const Acts::MaterialSlab &slab,
            std::vector<Particle>& generated) const;
 
  private:
@@ -85,6 +91,11 @@ class PhotonConversion {
   /// @return The energy of the child particle
   template <typename generator_t>
   Scalar generateFirstChildEnergyFraction(generator_t& generator,
+                                          Scalar gammaMom) const;
+
+  template <typename generator_t>
+  Scalar generateFirstChildEnergyFraction(generator_t& generator,
+                                          const Acts::MaterialSlab &slab,
                                           Scalar gammaMom) const;
 
   /// Generate the direction of the child particles.
@@ -223,6 +234,64 @@ Particle::Scalar PhotonConversion::generateFirstChildEnergyFraction(
 }
 
 template <typename generator_t>
+Particle::Scalar PhotonConversion::generateFirstChildEnergyFraction(
+    generator_t& generator, const Acts::MaterialSlab &slab, Scalar gammaMom) const {
+  /// This method is based upon the Geant4 class G4PairProductionRelModel
+
+  /// @note This method is from the Geant4 class G4Element
+  //
+  //  Compute Coulomb correction factor (Phys Rev. D50 3-1 (1994) page 1254)
+  constexpr Scalar k1 = 0.0083;
+  constexpr Scalar k2 = 0.20206;
+  constexpr Scalar k3 = 0.0020;  // This term is missing in Athena
+  constexpr Scalar k4 = 0.0369;
+  constexpr Scalar alphaEM = 1. / 137.;
+  const Scalar m_Z = slab.material().Z(); // Average Z of the material
+  const Scalar az2 = (alphaEM * m_Z) * (alphaEM * m_Z);
+  const Scalar az4 = az2 * az2;
+  const Scalar coulombFactor =
+      (k1 * az4 + k2 + 1. / (1. + az2)) * az2 - (k3 * az4 + k4) * az4;
+
+  const Scalar logZ13 = std::log(m_Z) * 1. / 3.;
+  const Scalar FZ = 8. * (logZ13 + coulombFactor);
+  const Scalar deltaMax = exp((42.038 - FZ) * 0.1206) - 0.958;
+
+  const Scalar deltaPreFactor = 136. / std::pow(m_Z, 1. / 3.);
+  const Scalar eps0 = kElectronMass / gammaMom;
+  const Scalar deltaFactor = deltaPreFactor * eps0;
+  const Scalar deltaMin = 4. * deltaFactor;
+
+  // Compute the limits of eps
+  const Scalar epsMin =
+      std::max(eps0, 0.5 - 0.5 * std::sqrt(1. - deltaMin / deltaMax));
+  const Scalar epsRange = 0.5 - epsMin;
+
+  // Sample the energy rate (eps) of the created electron (or positron)
+  const Scalar F10 = screenFunction1(deltaMin) - FZ;
+  const Scalar F20 = screenFunction2(deltaMin) - FZ;
+  const Scalar NormF1 = F10 * epsRange * epsRange;
+  const Scalar NormF2 = 1.5 * F20;
+
+  // We will need 3 uniform random number for each trial of sampling
+  Scalar greject = 0.;
+  Scalar eps = 0.;
+  std::uniform_real_distribution<Scalar> rndmEngine;
+  do {
+    if (NormF1 > rndmEngine(generator) * (NormF1 + NormF2)) {
+      eps = 0.5 - epsRange * std::pow(rndmEngine(generator), 1. / 3.);
+      const Scalar delta = deltaFactor / (eps * (1. - eps));
+      greject = (screenFunction1(delta) - FZ) / F10;
+    } else {
+      eps = epsMin + epsRange * rndmEngine(generator);
+      const Scalar delta = deltaFactor / (eps * (1. - eps));
+      greject = (screenFunction2(delta) - FZ) / F20;
+    }
+  } while (greject < rndmEngine(generator));
+  //  End of eps sampling
+  return eps * childEnergyScaleFactor;
+}
+
+template <typename generator_t>
 Particle::Vector3 PhotonConversion::generateChildDirection(
     generator_t& generator, const Particle& particle) const {
   /// This method is based upon the Athena class PhotonConversionTool
@@ -310,6 +379,36 @@ bool PhotonConversion::run(generator_t& generator, Particle& particle,
 
   // Get one child energy
   const Scalar childEnergy = p * generateFirstChildEnergyFraction(generator, p);
+
+  // Now get the deflection
+  const Particle::Vector3 childDir =
+      generateChildDirection(generator, particle);
+
+  // Produce the final state
+  const std::array<Particle, 2> finalState =
+      generateChildren(particle, childEnergy, childDir);
+  generated.insert(generated.end(), finalState.begin(), finalState.end());
+
+  return true;
+}
+
+template <typename generator_t>
+bool PhotonConversion::run(generator_t& generator, Particle& particle,
+                           const Acts::MaterialSlab &slab,
+                           std::vector<Particle>& generated) const {
+  // Fast exit if particle is not a photon
+  if (particle.pdg() != Acts::PdgParticle::eGamma) {
+    return false;
+  }
+
+  // Fast exit if momentum is too low
+  const Scalar p = particle.absoluteMomentum();
+  if (p < (2 * kElectronMass)) {
+    return false;
+  }
+
+  // Get one child energy
+  const Scalar childEnergy = p * generateFirstChildEnergyFraction(generator, slab, p);
 
   // Now get the deflection
   const Particle::Vector3 childDir =

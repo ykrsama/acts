@@ -16,6 +16,7 @@
 #include "Acts/Tests/CommonHelpers/FloatComparisons.hpp"
 #include "ActsFatras/EventData/Particle.hpp"
 #include "ActsFatras/Physics/ElectroMagnetic/PhotonConversion.hpp"
+#include "Acts/Tests/CommonHelpers/PredefinedMaterials.hpp"
 
 #include <cmath>
 #include <limits>
@@ -149,6 +150,55 @@ BOOST_DATA_TEST_CASE(HighMomentumPhoton, Dataset::parametersPhotonConversion,
   // No particles should be generated - momentum too low
   std::vector<ActsFatras::Particle> generated;
   BOOST_CHECK(pc.run(gen, particle, generated));
+  BOOST_CHECK_EQUAL(generated.size(), 2);
+
+  // Test the children
+  BOOST_CHECK((generated[0].pdg() == Acts::PdgParticle::eElectron) ||
+              (generated[0].pdg() == Acts::PdgParticle::ePositron));
+  BOOST_CHECK((generated[1].pdg() == Acts::PdgParticle::eElectron) ||
+              (generated[1].pdg() == Acts::PdgParticle::ePositron));
+  BOOST_CHECK_NE(generated[0].pdg(), generated[1].pdg());
+  BOOST_CHECK_NE(generated[0].fourMomentum(), Acts::Vector4::Zero());
+  BOOST_CHECK_NE(generated[1].fourMomentum(), Acts::Vector4::Zero());
+
+  // Test for similar invariant masses
+  Acts::Vector4 momSum =
+      generated[0].fourMomentum() + generated[1].fourMomentum();
+  Acts::Vector3 momVector = momSum.template segment<3>(Acts::eMom0);
+  double sSum = momSum[Acts::eEnergy] * momSum[Acts::eEnergy] -
+                momVector.norm() * momVector.norm();
+  BOOST_CHECK(std::isfinite(sSum));
+
+  double sParticle =
+      particleInit.energy() * particleInit.energy() -
+      particleInit.absoluteMomentum() * particleInit.absoluteMomentum();
+  BOOST_CHECK(std::isfinite(sParticle));
+  CHECK_CLOSE_OR_SMALL(sSum, sParticle, 1e-2, 1e-2);
+}
+
+BOOST_DATA_TEST_CASE(Material, Dataset::parametersPhotonConversion,
+                     phi, theta, seed) {
+  using Scalar = ActsFatras::PhotonConversion::Scalar;
+  using namespace Acts::UnitLiterals;
+  auto materialSlab = Acts::Test::makePercentSlab();
+
+  Generator gen(seed);
+
+  /// Produce a high momentum photon
+  ActsFatras::Particle particle =
+      Dataset::makeParticle(Acts::PdgParticle::eGamma, phi, theta, 1_GeV);
+  ActsFatras::Particle particleInit = particle;
+
+  ActsFatras::PhotonConversion pc;
+
+  // No limits should be set - momentum too low
+  std::pair<Scalar, Scalar> limits = pc.generatePathLimits(gen, particle);
+  BOOST_CHECK_NE(limits.first, std::numeric_limits<Scalar>::infinity());
+  BOOST_CHECK_EQUAL(limits.second, std::numeric_limits<Scalar>::infinity());
+
+  // No particles should be generated - momentum too low
+  std::vector<ActsFatras::Particle> generated;
+  BOOST_CHECK(pc.run(gen, particle, materialSlab, generated));
   BOOST_CHECK_EQUAL(generated.size(), 2);
 
   // Test the children
