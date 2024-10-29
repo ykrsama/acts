@@ -176,6 +176,7 @@ BOOST_DATA_TEST_CASE(HighMomentumPhoton, Dataset::parametersPhotonConversion,
   CHECK_CLOSE_OR_SMALL(sSum, sParticle, 1e-2, 1e-2);
 }
 
+/*
 BOOST_DATA_TEST_CASE(Material, Dataset::parametersPhotonConversion,
                      phi, theta, seed) {
   using Scalar = ActsFatras::PhotonConversion::Scalar;
@@ -224,5 +225,6 @@ BOOST_DATA_TEST_CASE(Material, Dataset::parametersPhotonConversion,
   BOOST_CHECK(std::isfinite(sParticle));
   CHECK_CLOSE_OR_SMALL(sSum, sParticle, 1e-2, 1e-2);
 }
+*/
 
 BOOST_AUTO_TEST_SUITE_END()

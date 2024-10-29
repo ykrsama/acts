@@ -233,6 +233,7 @@ Particle::Scalar PhotonConversion::generateFirstChildEnergyFraction(
   return eps * childEnergyScaleFactor;
 }
 
+/*
 template <typename generator_t>
 Particle::Scalar PhotonConversion::generateFirstChildEnergyFraction(
     generator_t& generator, const Acts::MaterialSlab &slab, Scalar gammaMom) const {
@@ -290,6 +291,7 @@ Particle::Scalar PhotonConversion::generateFirstChildEnergyFraction(
   //  End of eps sampling
   return eps * childEnergyScaleFactor;
 }
+*/
 
 template <typename generator_t>
 Particle::Vector3 PhotonConversion::generateChildDirection(
@@ -392,6 +394,7 @@ bool PhotonConversion::run(generator_t& generator, Particle& particle,
   return true;
 }
 
+/*
 template <typename generator_t>
 bool PhotonConversion::run(generator_t& generator, Particle& particle,
                            const Acts::MaterialSlab &slab,
@@ -421,5 +424,6 @@ bool PhotonConversion::run(generator_t& generator, Particle& particle,
 
   return true;
 }
+*/
 
 }  // namespace ActsFatras
